@@ -46,11 +46,14 @@
                 },
                 {
                     "Label": {
-                        "default": "AWS Quick Start Configuration"
+                        "default": "Data source config"
                     },
                     "Parameters": [
-                        "QSS3BucketName",
-                        "QSS3KeyPrefix"
+                        "InitializeRDGWPs1URL",
+                        "SetEIPPs1URL",
+                        "UnzipArchivePs1URL",
+                        "JoinDomainPs1URL",
+                        "AWSQuickStartZipURL"
                     ]
                 }
             ],
@@ -82,11 +85,20 @@
                 "PublicSubnet2ID": {
                     "default": "Public Subnet 2 ID"
                 },
-                "QSS3BucketName": {
-                    "default": "Quick Start S3 Bucket Name"
+                "InitializeRDGWPs1URL": {
+                    "default": "URL of Initialize-RDGW.ps1"
                 },
-                "QSS3KeyPrefix": {
-                    "default": "Quick Start S3 Key Prefix"
+                "SetEIPPs1URL": {
+                    "default": "URL of Set-EIP.ps1"
+                },
+                "UnzipArchivePs1URL": {
+                    "default": "URL of Unzip-Archive.ps1"
+                },
+                "JoinDomainPs1URL": {
+                    "default": "URL of Join-Domain.ps1"
+                },
+                "AWSQuickStartZipURL": {
+                    "default": "URL of AWSQuickStart.zip"
                 },
                 "RDGWInstanceType": {
                     "default": "Remote Desktop Gateway Instance Type"
@@ -160,18 +172,29 @@
             "Description": "ID of the public subnet 2 you want to provision the second Remote Desktop Gateway into (e.g., subnet-e3246d8e)",
             "Type": "AWS::EC2::Subnet::Id"
         },
-        "QSS3BucketName": {
-            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
-            "ConstraintDescription": "Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
-            "Default": "quickstart-reference",
-            "Description": "S3 bucket name for the Quick Start assets. Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+        "InitializeRDGWPs1URL": {
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bastion-awscn/Windows-RDGW/Initialize-RDGW.ps1",
+            "Description": "URL of Initialize-RDGW.ps1",
             "Type": "String"
         },
-        "QSS3KeyPrefix": {
-            "AllowedPattern": "^[0-9a-zA-Z-/]*$",
-            "ConstraintDescription": "Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
-            "Default": "microsoft/rdgateway/latest/",
-            "Description": "S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
+        "SetEIPPs1URL": {
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bastion-awscn/Windows-RDGW/Set-EIP.ps1",
+            "Description": "URL of Set-EIP.ps1",
+            "Type": "String"
+        },
+        "UnzipArchivePs1URL": {
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bastion-awscn/Windows-RDGW/Unzip-Archive.ps1",
+            "Description": "URL of Unzip-Archive.ps1",
+            "Type": "String"
+        },
+        "JoinDomainPs1URL": {
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bastion-awscn/Windows-RDGW/Join-Domain.ps1",
+            "Description": "URL of Join-Domain.ps1",
+            "Type": "String"
+        },
+        "AWSQuickStartZipURL": {
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bastion-awscn/Windows-RDGW/AWSQuickStart.zip",
+            "Description": "URL of AWSQuickStart.zip",
             "Type": "String"
         },
         "RDGWInstanceType": {
@@ -179,6 +202,7 @@
             "Type": "String",
             "Default": "t2.large",
             "AllowedValues": [
+                "t2.medium",
                 "t2.large",
                 "m3.large",
                 "m3.xlarge",
@@ -226,47 +250,8 @@
             "AMI": {
                 "WS2012R2": "Windows_Server-2012-R2_RTM-English-64Bit-Base-2017.10.13"
             },
-            "ap-northeast-1": {
-                "WS2012R2": "ami-4d34eb2b"
-            },
-            "ap-northeast-2": {
-                "WS2012R2": "ami-82fe5bec"
-            },
-            "ap-south-1": {
-                "WS2012R2": "ami-27286b48"
-            },
-            "ap-southeast-1": {
-                "WS2012R2": "ami-0e13686d"
-            },
-            "ap-southeast-2": {
-                "WS2012R2": "ami-2013f142"
-            },
-            "ca-central-1": {
-                "WS2012R2": "ami-8bff47ef"
-            },
-            "eu-central-1": {
-                "WS2012R2": "ami-e8843b87"
-            },
-            "eu-west-1": {
-                "WS2012R2": "ami-1ecc1e67"
-            },
-            "eu-west-2": {
-                "WS2012R2": "ami-4cbba928"
-            },
-            "sa-east-1": {
-                "WS2012R2": "ami-5d512f31"
-            },
-            "us-east-1": {
-                "WS2012R2": "ami-f6529b8c"
-            },
-            "us-east-2": {
-                "WS2012R2": "ami-80765ae5"
-            },
-            "us-west-1": {
-                "WS2012R2": "ami-955c6ef5"
-            },
-            "us-west-2": {
-                "WS2012R2": "ami-f318de8b"
+            "cn-north-1": {
+                "WS2012R2": "ami-c4e734a9"
             }
         }
     },
@@ -311,14 +296,6 @@
                 },
                 "4"
             ]
-        },
-        "GovCloudCondition": {
-            "Fn::Equals": [
-                {
-                    "Ref": "AWS::Region"
-                },
-                "us-gov-west-1"
-            ]
         }
     },
     "Resources": {
@@ -349,6 +326,14 @@
                 "Domain": "vpc"
             }
         },
+        "CloudWatchLogs": {
+            "Type" : "AWS::Logs::LogGroup",
+            "Properties" : {
+                "LogGroupName" : {
+                  "Fn::Sub" : "RDGW-${AWS::StackName}"
+                }
+            }
+        },
         "RDGWHostRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
@@ -359,27 +344,24 @@
                             "Statement": [
                                 {
                                     "Action": [
-                                        "s3:GetObject"
+                                        "logs:CreateLogStream",
+                                        "logs:GetLogEvents",
+                                        "logs:PutLogEvents",
+                                        "logs:DescribeLogGroups",
+                                        "logs:DescribeLogStreams",
+                                        "logs:PutRetentionPolicy",
+                                        "logs:PutMetricFilter",
+                                        "logs:CreateLogGroup"
                                     ],
-                                    "Resource": {
-                                        "Fn::Sub": [
-                                            "arn:${Partition}:s3:::${QSS3BucketName}/${QSS3KeyPrefix}*",
-                                            {
-                                                "Partition": {
-                                                    "Fn::If": [
-                                                        "GovCloudCondition",
-                                                        "aws-us-gov",
-                                                        "aws"
-                                                    ]
-                                                }
-                                            }
-                                        ]
+                                    "Resource":
+                                    {
+                                        "Fn::Sub" : "arn:aws-cn:logs:${AWS::Region}:${AWS::AccountId}:log-group:RDGW-${AWS::StackName}:*"
                                     },
                                     "Effect": "Allow"
                                 }
                             ]
                         },
-                        "PolicyName": "aws-quick-start-s3-policy"
+                        "PolicyName": "bastion-cloudwatch-logs-policy"
                     },
                     {
                         "PolicyDocument": {
@@ -409,7 +391,7 @@
                             ],
                             "Principal": {
                                 "Service": [
-                                    "ec2.amazonaws.com"
+                                    "ec2.amazonaws.com.cn"
                                 ]
                             },
                             "Effect": "Allow"
@@ -473,27 +455,14 @@
         },
         "RDGWLaunchConfiguration": {
             "Type": "AWS::AutoScaling::LaunchConfiguration",
+            "DependsOn": ["CloudWatchLogs"],
             "Metadata": {
-                "AWS::CloudFormation::Authentication": {
-                    "S3AccessCreds": {
-                        "type": "S3",
-                        "roleName": {
-                            "Ref": "RDGWHostRole"
-                        },
-                        "buckets": [
-                            {
-                                "Ref": "QSS3BucketName"
-                            }
-                        ]
-                    }
-                },
                 "AWS::CloudFormation::Init": {
                     "configSets": {
                         "config": [
                             "setup",
                             "join",
-                            "installRDS",
-                            "finalize"
+                            "installRDS"
                         ]
                     },
                     "setup": {
@@ -542,88 +511,287 @@
                             },
                             "C:\\cfn\\scripts\\Unzip-Archive.ps1": {
                                 "source": {
-                                    "Fn::Sub": [
-                                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-microsoft-utilities/scripts/Unzip-Archive.ps1",
-                                        {
-                                            "QSS3Region": {
-                                                "Fn::If": [
-                                                    "GovCloudCondition",
-                                                    "s3-us-gov-west-1",
-                                                    "s3"
-                                                ]
-                                            }
-                                        }
-                                    ]
-                                },
-                                "authentication": "S3AccessCreds"
+                                    "Ref": "UnzipArchivePs1URL"
+                                }
                             },
                             "C:\\cfn\\modules\\AWSQuickStart.zip": {
                                 "source": {
-                                    "Fn::Sub": [
-                                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-microsoft-utilities/modules/AWSQuickStart.zip",
-                                        {
-                                            "QSS3Region": {
-                                                "Fn::If": [
-                                                    "GovCloudCondition",
-                                                    "s3-us-gov-west-1",
-                                                    "s3"
-                                                ]
-                                            }
-                                        }
-                                    ]
-                                },
-                                "authentication": "S3AccessCreds"
+                                    "Ref": "AWSQuickStartZipURL"
+                                }
                             },
                             "C:\\cfn\\scripts\\Join-Domain.ps1": {
                                 "source": {
-                                    "Fn::Sub": [
-                                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-microsoft-utilities/scripts/Join-Domain.ps1",
-                                        {
-                                            "QSS3Region": {
-                                                "Fn::If": [
-                                                    "GovCloudCondition",
-                                                    "s3-us-gov-west-1",
-                                                    "s3"
-                                                ]
-                                            }
-                                        }
-                                    ]
-                                },
-                                "authentication": "S3AccessCreds"
+                                    "Ref": "JoinDomainPs1URL"
+                                }
                             },
                             "c:\\cfn\\scripts\\Initialize-RDGW.ps1": {
                                 "source": {
-                                    "Fn::Sub": [
-                                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/Initialize-RDGW.ps1",
-                                        {
-                                            "QSS3Region": {
-                                                "Fn::If": [
-                                                    "GovCloudCondition",
-                                                    "s3-us-gov-west-1",
-                                                    "s3"
-                                                ]
-                                            }
-                                        }
-                                    ]
-                                },
-                                "authentication": "S3AccessCreds"
+                                    "Ref": "InitializeRDGWPs1URL"
+                                }
                             },
                             "c:\\cfn\\scripts\\Set-EIP.ps1": {
                                 "source": {
-                                    "Fn::Sub": [
-                                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/Set-EIP.ps1",
-                                        {
-                                            "QSS3Region": {
-                                                "Fn::If": [
-                                                    "GovCloudCondition",
-                                                    "s3-us-gov-west-1",
-                                                    "s3"
-                                                ]
-                                            }
-                                        }
+                                    "Ref": "SetEIPPs1URL"
+                                }
+                            },
+                            "C:\\Program Files\\Amazon\\SSM\\Plugins\\awsCloudWatch\\AWS.EC2.Windows.CloudWatch.json": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "{",
+                                                "\"IsEnabled\": true,",
+                                                "\"EngineConfiguration\": {",
+                                                    "\"PollInterval\": \"00:00:05\",",
+                                                    "\"Components\": [",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftRdmsUIAdmin\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Rdms-UI/Admin\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftRdmsUIOperational\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Rdms-UI/Operational\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"RemoteDesktopManagementServiceAdmin\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Remote-Desktop-Management-Service-Admin\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"RemoteDesktopManagementServiceOperational\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Remote-Desktop-Management-Service-Operational\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesSessionBrokerClientAdmin\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-SessionBroker-Client/Admin\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesSessionBrokerClientOperational\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-SessionBroker-Client/Operational\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesRemoteConnectionManagerAdmin\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-RemoteConnectionManager/Admin\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesRemoteConnectionManagerOperational\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-RemoteConnectionManager/Operational\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesPnPDevicesAdmin\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-PnPDevices/Admin\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesPnPDevicesOperational\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-PnPDevices/Operational\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsRemoteAppandDesktopConnectionsAdmin\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-RemoteApp and Desktop Connections/Admin\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsRemoteAppandDesktopConnectionManagementAdmin\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-RemoteApp and Desktop Connection Management/Admin\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsRemoteAppandDesktopConnectionManagementOperational\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-RemoteApp and Desktop Connection Management/Operational\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesSessionBrokerAdmin\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-SessionBroker/Admin\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesSessionBrokerOperational\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-SessionBroker/Operational\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesTSVVmHostAgentOperational\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-TSV-VmHostAgent/Operational\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesTSVVmHostAgentAdmin\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-TSV-VmHostAgent/Admin\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesServerUSBDevicesOperational\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-ServerUSBDevices/Operational\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesServerUSBDevicesAdmin\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-ServerUSBDevices/Admin\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesLocalSessionManagerOperational\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-LocalSessionManager/Operational\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesLocalSessionManagerAdmin\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-LocalSessionManager/Admin\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesClientUSBDevicesOperational\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-ClientUSBDevices/Operational\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesClientUSBDevicesAdmin\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-ClientUSBDevices/Admin\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesRDPClientOperational\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-RDPClient/Operational\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesLicensingAdmin\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-Licensing/Admin\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesLicensingOperational\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-Licensing/Operational\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesGatewayAdmin\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-Gateway/Admin\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"MicrosoftWindowsTerminalServicesGatewayOperational\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.EventLog.EventLogInputComponent,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"LogName\": \"Microsoft-Windows-TerminalServices-Gateway/Operational\",",
+                                                                "\"Levels\": \"7\"",
+                                                            "}",
+                                                        "},",
+                                                        "{",
+                                                            "\"Id\": \"CloudWatchLogs\",",
+                                                            "\"FullName\": \"AWS.EC2.Windows.CloudWatch.CloudWatchLogsOutput,AWS.EC2.Windows.CloudWatch\",",
+                                                            "\"Parameters\": {",
+                                                                "\"AccessKey\": \"\",",
+                                                                "\"SecretKey\": \"\",",
+                                                                "\"Region\": \"",{"Ref": "AWS::Region"},
+                                                                "\",\"LogGroup\": \"RDGW-",{"Ref": "AWS::StackName"},
+                                                                "\",",
+                                                                "\"LogStream\": \"{instance_id}\"",
+                                                            "}",
+                                                        "}",
+                                                    "],",
+                                                    "\"Flows\": {",
+                                                        "\"Flows\": ",
+                                                        "[",
+                                                            "\"(MicrosoftRdmsUIAdmin,MicrosoftRdmsUIOperational,RemoteDesktopManagementServiceAdmin,RemoteDesktopManagementServiceOperational,MicrosoftWindowsTerminalServicesSessionBrokerClientAdmin,MicrosoftWindowsTerminalServicesSessionBrokerClientOperational,MicrosoftWindowsTerminalServicesRemoteConnectionManagerAdmin,MicrosoftWindowsTerminalServicesRemoteConnectionManagerOperational,MicrosoftWindowsTerminalServicesPnPDevicesAdmin,MicrosoftWindowsTerminalServicesPnPDevicesOperational,MicrosoftWindowsRemoteAppandDesktopConnectionsAdmin,MicrosoftWindowsRemoteAppandDesktopConnectionManagementAdmin,MicrosoftWindowsRemoteAppandDesktopConnectionManagementOperational,MicrosoftWindowsTerminalServicesSessionBrokerAdmin,MicrosoftWindowsTerminalServicesSessionBrokerOperational,MicrosoftWindowsTerminalServicesTSVVmHostAgentOperational,MicrosoftWindowsTerminalServicesTSVVmHostAgentAdmin,MicrosoftWindowsTerminalServicesServerUSBDevicesOperational,MicrosoftWindowsTerminalServicesServerUSBDevicesAdmin,MicrosoftWindowsTerminalServicesLocalSessionManagerOperational,MicrosoftWindowsTerminalServicesLocalSessionManagerAdmin,MicrosoftWindowsTerminalServicesClientUSBDevicesOperational,MicrosoftWindowsTerminalServicesClientUSBDevicesAdmin,MicrosoftWindowsTerminalServicesRDPClientOperational,MicrosoftWindowsTerminalServicesLicensingAdmin,MicrosoftWindowsTerminalServicesLicensingOperational,MicrosoftWindowsTerminalServicesGatewayAdmin,MicrosoftWindowsTerminalServicesGatewayOperational),CloudWatchLogs\"",
+                                                        "]",
+                                                    "}",
+                                                "}",
+                                            "}"
+                                        ]
                                     ]
-                                },
-                                "authentication": "S3AccessCreds"
+                                }
                             }
                         },
                         "services": {
@@ -780,14 +948,6 @@
                                 "waitAfterCompletion": "0"
                             }
                         }
-                    },
-                    "finalize": {
-                        "commands": {
-                            "1-signal-success": {
-                                "command": "powershell.exe -Command \"Write-AWSQuickStartStatus\"",
-                                "waitAfterCompletion": "0"
-                            }
-                        }
                     }
                 }
             },
@@ -843,6 +1003,17 @@
                                     "Ref": "AWS::Region"
                                 },
                                 "\n",
+                                "cfn-signal -e %ERRORLEVEL% --stack ",
+                                {
+                                    "Ref": "AWS::StackName"
+                                },
+                                " --resource RDGWAutoScalingGroup --region ",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "\n",
+                                "powershell.exe -Command \"Restart-Service AmazonSSMAgent\"\n",
+                                "shutdown -r -t 1\n",
                                 "</script>\n"
                             ]
                         ]
@@ -862,6 +1033,14 @@
                         "IpProtocol": "tcp",
                         "FromPort": "3389",
                         "ToPort": "3389",
+                        "CidrIp": {
+                            "Ref": "RDGWCIDR"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "443",
+                        "ToPort": "443",
                         "CidrIp": {
                             "Ref": "RDGWCIDR"
                         }
