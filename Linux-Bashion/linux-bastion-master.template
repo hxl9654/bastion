@@ -42,11 +42,13 @@
                 },
                 {
                     "Label": {
-                        "default": "AWS Quick Start Configuration"
+                        "default": "Data source config"
                     },
                     "Parameters": [
-                        "QSS3BucketName",
-                        "QSS3KeyPrefix"
+                        "AwsVpcTemplateURL",
+                        "LinuxBastionTemplateURL",
+                        "BastionBootstrapShURL",
+                        "AwsCfnBootstrapURL"
                     ]
                 }
             ],
@@ -90,11 +92,17 @@
                 "PublicSubnet2CIDR": {
                     "default": "Public Subnet 2 CIDR"
                 },
-                "QSS3BucketName": {
-                    "default": "Quick Start S3 Bucket Name"
+                "AwsVpcTemplateURL": {
+                    "default": "aws-vpc.template"
                 },
-                "QSS3KeyPrefix": {
-                    "default": "Quick Start S3 Key Prefix"
+                "LinuxBastionTemplateURL": {
+                    "default": "URL of linux-bastion.template"
+                },
+                "BastionBootstrapShURL": {
+                    "default": "URL of bastion_bootstrap.sh"
+                },
+                "AwsCfnBootstrapURL": {
+                    "default": "URL of aws-cfn-bootstrap-latest.tar.gz"
                 },
                 "RemoteAccessCIDR": {
                     "default": "Allowed Bastion External Access CIDR"
@@ -114,15 +122,14 @@
             "AllowedValues": [
                 "Amazon-Linux-HVM",
                 "CentOS-7-HVM",
-                "Ubuntu-Server-14.04-LTS-HVM",
-                "Ubuntu-Server-16.04-LTS-HVM"
+                "Ubuntu-Server-14.04-LTS-HVM"
             ],
             "Default": "Amazon-Linux-HVM",
             "Description": "The Linux distribution for the AMI to be used for the bastion instances",
             "Type": "String"
         },
         "BastionBanner": {
-            "Default": "https://s3.amazonaws.com/quickstart-reference/linux/bastion/latest/scripts/banner_message.txt",
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/banner_message.txt",
             "Description": "Banner text to display upon login",
             "Type": "String"
         },
@@ -215,18 +222,24 @@
             "Description": "CIDR Block for the public DMZ subnet 2 located in Availability Zone 2",
             "Type": "String"
         },
-        "QSS3BucketName": {
-            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
-            "ConstraintDescription": "Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
-            "Default": "quickstart-reference",
-            "Description": "S3 bucket name for the Quick Start assets. Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+        "AwsVpcTemplateURL": {
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/aws-vpc.template",
+            "Description": "URL of aws-vpc.template",
             "Type": "String"
         },
-        "QSS3KeyPrefix": {
-            "AllowedPattern": "^[0-9a-zA-Z-/]*$",
-            "ConstraintDescription": "Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
-            "Default": "linux/bastion/latest/",
-            "Description": "S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
+        "LinuxBastionTemplateURL": {
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/linux-bastion.template",
+            "Description": "URL of linux-bastion.template",
+            "Type": "String"
+        },
+        "BastionBootstrapShURL": {
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/bastion_bootstrap.sh",
+            "Description": "URL of bastion_bootstrap.sh",
+            "Type": "String"
+        },
+        "AwsCfnBootstrapURL": {
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/aws-cfn-bootstrap-latest.tar.gz",
+            "Description": "URL of aws-cfn-bootstrap-latest.tar.gz",
             "Type": "String"
         },
         "RemoteAccessCIDR": {
@@ -243,33 +256,12 @@
             "Type": "String"
         }
     },
-    "Conditions": {
-        "GovCloudCondition": {
-            "Fn::Equals": [
-                {
-                    "Ref": "AWS::Region"
-                },
-                "us-gov-west-1"
-            ]
-        }
-    },
     "Resources": {
         "VPCStack": {
             "Type": "AWS::CloudFormation::Stack",
             "Properties": {
                 "TemplateURL": {
-                    "Fn::Sub": [
-                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template",
-                        {
-                            "QSS3Region": {
-                                "Fn::If": [
-                                    "GovCloudCondition",
-                                    "s3-us-gov-west-1",
-                                    "s3"
-                                ]
-                            }
-                        }
-                    ]
+                    "Ref": "AwsVpcTemplateURL"
                 },
                 "Parameters": {
                     "AvailabilityZones": {
@@ -307,18 +299,7 @@
             "Type": "AWS::CloudFormation::Stack",
             "Properties": {
                 "TemplateURL": {
-                    "Fn::Sub": [
-                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/linux-bastion.template",
-                        {
-                            "QSS3Region": {
-                                "Fn::If": [
-                                    "GovCloudCondition",
-                                    "s3-us-gov-west-1",
-                                    "s3"
-                                ]
-                            }
-                        }
-                    ]
+                    "Ref": "LinuxBastionTemplateURL"
                 },
                 "Parameters": {
                     "BastionAMIOS": {
@@ -357,12 +338,12 @@
                             "Outputs.PublicSubnet2ID"
                         ]
                     },
-                    "QSS3BucketName": {
-                        "Ref": "QSS3BucketName"
+                    "BastionBootstrapShURL": {
+                         "Ref": "BastionBootstrapShURL"
                     },
-                    "QSS3KeyPrefix": {
-                         "Ref": "QSS3KeyPrefix"
-                    },
+                    "AwsCfnBootstrapURL": {
+                        "Ref": "AwsCfnBootstrapURL"
+                   },
                     "RemoteAccessCIDR": {
                         "Ref": "RemoteAccessCIDR"
                     },
