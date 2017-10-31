@@ -40,11 +40,15 @@
                 },
                 {
                     "Label": {
-                        "default": "AWS Quick Start Configuration"
+                        "default": "Data source config"
                     },
                     "Parameters": [
-                        "QSS3BucketName",
-                        "QSS3KeyPrefix"
+                        "AwsVpcTemplateURL",
+                        "RdgwStandaloneTemplateURL",
+                        "InitializeRDGWPs1URL",
+                        "SetEIPPs1URL",
+                        "UnzipArchivePs1URL",
+                        "AWSQuickStartZipURL"
                     ]
                 }
             ],
@@ -79,11 +83,23 @@
                 "PublicSubnet2CIDR": {
                     "default": "Public Subnet 2 CIDR"
                 },
-                "QSS3BucketName": {
-                    "default": "Quick Start S3 Bucket Name"
+                "InitializeRDGWPs1URL": {
+                    "default": "URL of Initialize-RDGW.ps1"
                 },
-                "QSS3KeyPrefix": {
-                    "default": "Quick Start S3 Key Prefix"
+                "SetEIPPs1URL": {
+                    "default": "URL of Set-EIP.ps1"
+                },
+                "UnzipArchivePs1URL": {
+                    "default": "URL of Unzip-Archive.ps1"
+                },
+                "AWSQuickStartZipURL": {
+                    "default": "URL of AWSQuickStart.zip"
+                },
+                "AwsVpcTemplateURL": {
+                    "default": "URL of aws-vpc.template"
+                },
+                "RdgwStandaloneTemplateURL": {
+                    "default": "URL of rdgw-standalone.template"
                 },
                 "RDGWInstanceType": {
                     "default": "Remote Desktop Gateway Instance Type"
@@ -169,18 +185,34 @@
             "Description": "CIDR Block for the public DMZ subnet 2 located in Availability Zone 2",
             "Type": "String"
         },
-        "QSS3BucketName": {
-            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
-            "ConstraintDescription": "Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
-            "Default": "quickstart-reference",
-            "Description": "S3 bucket name for the Quick Start assets. Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+        "InitializeRDGWPs1URL": {
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/windows/Initialize-RDGW.ps1",
+            "Description": "URL of Initialize-RDGW.ps1",
             "Type": "String"
         },
-        "QSS3KeyPrefix": {
-            "AllowedPattern": "^[0-9a-zA-Z-/]*$",
-            "ConstraintDescription": "Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
-            "Default": "microsoft/rdgateway/latest/",
-            "Description": "S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
+        "SetEIPPs1URL": {
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/windows/Set-EIP.ps1",
+            "Description": "URL of Set-EIP.ps1",
+            "Type": "String"
+        },
+        "UnzipArchivePs1URL": {
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/windows/Unzip-Archive.ps1",
+            "Description": "URL of Unzip-Archive.ps1",
+            "Type": "String"
+        },
+        "AWSQuickStartZipURL": {
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/windows/AWSQuickStart.zip",
+            "Description": "URL of AWSQuickStart.zip",
+            "Type": "String"
+        },
+        "AwsVpcTemplateURL": {
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/windows/aws-vpc.template",
+            "Description": "URL of aws-vpc.template",
+            "Type": "String"
+        },
+        "RdgwStandaloneTemplateURL": {
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/windows/rdgw-standalone.template",
+            "Description": "URL of rdgw-standalone.template",
             "Type": "String"
         },
         "RDGWInstanceType": {
@@ -188,6 +220,7 @@
             "Type": "String",
             "Default": "t2.large",
             "AllowedValues": [
+                "t2.medium",
                 "t2.large",
                 "m3.large",
                 "m3.xlarge",
@@ -227,18 +260,7 @@
             "Type": "AWS::CloudFormation::Stack",
             "Properties": {
                 "TemplateURL": {
-                    "Fn::Sub": [
-                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template",
-                        {
-                            "QSS3Region": {
-                                "Fn::If": [
-                                    "GovCloudCondition",
-                                    "s3-us-gov-west-1",
-                                    "s3"
-                                ]
-                            }
-                        }
-                    ]
+                    "Ref": "AwsVpcTemplateURL"
                 },
                 "Parameters": {
                     "AvailabilityZones": {
@@ -276,18 +298,7 @@
             "Type": "AWS::CloudFormation::Stack",
             "Properties": {
                 "TemplateURL": {
-                    "Fn::Sub": [
-                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}templates/rdgw-standalone.template",
-                        {
-                            "QSS3Region": {
-                                "Fn::If": [
-                                    "GovCloudCondition",
-                                    "s3-us-gov-west-1",
-                                    "s3"
-                                ]
-                            }
-                        }
-                    ]
+                    "Ref": "RdgwStandaloneTemplateURL"
                 },
                 "Parameters": {
                     "AdminPassword": {
@@ -317,11 +328,17 @@
                             "Outputs.PublicSubnet2ID"
                         ]
                     },
-                    "QSS3BucketName": {
-                        "Ref": "QSS3BucketName"
+                    "InitializeRDGWPs1URL": {
+                        "Ref": "InitializeRDGWPs1URL"
                     },
-                    "QSS3KeyPrefix": {
-                        "Ref": "QSS3KeyPrefix" 
+                    "SetEIPPs1URL": {
+                        "Ref": "SetEIPPs1URL" 
+                     },
+                    "UnzipArchivePs1URL": {
+                        "Ref": "UnzipArchivePs1URL"
+                    },
+                    "AWSQuickStartZipURL": {
+                        "Ref": "AWSQuickStartZipURL" 
                      },
                     "RDGWInstanceType": {
                         "Ref": "RDGWInstanceType"
