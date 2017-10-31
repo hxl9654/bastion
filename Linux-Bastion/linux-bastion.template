@@ -105,7 +105,7 @@
             "Type": "String"
         },
         "BastionBanner": {
-            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/banner_message.txt",
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bastion-awscn/Linux-Bastion/banner_message.txt",
             "Description": "Banner text to display upon login",
             "Type": "String"
         },
@@ -179,12 +179,12 @@
             "Type": "AWS::EC2::Subnet::Id"
         },
         "BastionBootstrapShURL": {
-            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/bastion_bootstrap.sh",
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bastion-awscn/Linux-Bastion/bastion_bootstrap.sh",
             "Description": "URL of bastion_bootstrap.sh",
             "Type": "String"
         },
         "AwsCfnBootstrapURL": {
-            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/aws-cfn-bootstrap-latest.tar.gz",
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bastion-awscn/Linux-Bastion/aws-cfn-bootstrap-latest.tar.gz",
             "Description": "URL of aws-cfn-bootstrap-latest.tar.gz",
             "Type": "String"
         },

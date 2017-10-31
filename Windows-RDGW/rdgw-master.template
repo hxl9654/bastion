@@ -186,32 +186,32 @@
             "Type": "String"
         },
         "InitializeRDGWPs1URL": {
-            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/windows/Initialize-RDGW.ps1",
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bastion-awscn/Windows-RDGW/Initialize-RDGW.ps1",
             "Description": "URL of Initialize-RDGW.ps1",
             "Type": "String"
         },
         "SetEIPPs1URL": {
-            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/windows/Set-EIP.ps1",
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bastion-awscn/Windows-RDGW/Set-EIP.ps1",
             "Description": "URL of Set-EIP.ps1",
             "Type": "String"
         },
         "UnzipArchivePs1URL": {
-            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/windows/Unzip-Archive.ps1",
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bastion-awscn/Windows-RDGW/Unzip-Archive.ps1",
             "Description": "URL of Unzip-Archive.ps1",
             "Type": "String"
         },
         "AWSQuickStartZipURL": {
-            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/windows/AWSQuickStart.zip",
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bastion-awscn/Windows-RDGW/AWSQuickStart.zip",
             "Description": "URL of AWSQuickStart.zip",
             "Type": "String"
         },
         "AwsVpcTemplateURL": {
-            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/windows/aws-vpc.template",
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bastion-awscn/Windows-RDGW/aws-vpc.template",
             "Description": "URL of aws-vpc.template",
             "Type": "String"
         },
         "RdgwStandaloneTemplateURL": {
-            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bashion/windows/rdgw-standalone.template",
+            "Default": "https://s3.cn-north-1.amazonaws.com.cn/bastion-awscn/Windows-RDGW/rdgw-standalone.template",
             "Description": "URL of rdgw-standalone.template",
             "Type": "String"
         },
